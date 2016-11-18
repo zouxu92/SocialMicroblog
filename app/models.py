@@ -1,6 +1,9 @@
+# -*- coding:utf-8 -*-
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, login_required
+from . import login_manager
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
@@ -16,19 +19,22 @@ class Role(db.Model):
 	def __repr__(self):
 		return '<Role %r>' % self.name
 
-class User(db.Model):
+class User(UserMixin, db.Model):
 	__tablename__ = 'users'
 	id = db.Column(db.Integer, primary_key=True)
+	email = db.Column(db.String(64), unique=True, index=True)
 	username = db.Column(db.String(64), unique=True, index=True)
+	password_hash = db.Column(db.String(128))
 	# ...
 	role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 	def __repr__(self):
 		return '<User %r>' % self.username
 
-
+'''
 class User(db.Model):
-    # ...
-    password_hash = db.Column(db.String(128))
+	__tablename__ = 'users'
+
+	password_hash = db.Column(db.String(128))
 
     @property
     def password(self):
@@ -40,3 +46,9 @@ class User(db.Model):
 	# 验证密码
 	def verify_password(self, password):
 		return check_password_hash(self.password_hash, password)
+'''
+# 加载用户的回调函数
+@login_manager.user_loader
+def loas_user(user_id):
+	return User.query.get(int(user_id))
+

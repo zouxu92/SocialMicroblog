@@ -1,8 +1,5 @@
-{% extends "bootstrap/base.html" %}
 
 {% block title %}Flasky{% endblock %}
-
-
 
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
@@ -22,6 +19,16 @@
 			<li><a href="/">Home</a></li>
 			</ul>
 		</div>
+        <div class="navbar-right">
+            <!--导航条添加SignIn 和 Sign Out 链接-->
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_authenticated() %}
+                <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+                {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+                {% endif %}
+            </ul>
+        </div>
 	</div>
 </div>
 {% endblock %}
@@ -51,9 +58,8 @@
 		{{ message }}
 	</div>
 	{% endfor %}
-
-
-{% block page_content %}{% endblock %}
+    {% block page_content %}
+    {% endblock %}
 
 </div>
 {% endblock %}
