@@ -1,0 +1,15 @@
+<!--生成简单的表单-->
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.name.label }} {{ form.name(id='my-text-field') }}
+    {{ form.submit() }}
+</form>
+
+
+<!--使用Flask-Bootstrap对表单进行渲染
+{% import "bootstrap/test.html" as wtf %}
+{{ wtf.quick_form(form) }}
+-->
+
+
+
