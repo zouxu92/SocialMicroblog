@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_required
 from . import login_manager
-
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from . import db
 app = Flask(__name__)
 db = SQLAlchemy(app)
 # 定义 Role 和 User 模型
@@ -30,25 +31,27 @@ class User(UserMixin, db.Model):
 	def __repr__(self):
 		return '<User %r>' % self.username
 
-'''
-class User(db.Model):
-	__tablename__ = 'users'
+	# 确认用户账户
+	confirmed = db.Column(db.Boolean, default=False)
+	def generate_confirmation_token(self, expiration=3600):
+		s = Serializer(current_app.config['SECRET_KEY'], expiration)
+		return s.dump({'confirm':self.id})
 
-	password_hash = db.Column(db.String(128))
+	def confirm(self, token):
+		s = Serializer(current_app.config['SECRET_KEY'])
+		try:
+			data = s.loads(token)
+		except:
+			return False
+		if data.get('confirm') != self.id:
+			return False
+		self.confirmed = True
+		db.session.add(self)
+		return True
 
-    @property
-    def password(self):
-        raise AttributeError('Password is not a readable attribute')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
-	# 验证密码
-	def verify_password(self, password):
-		return check_password_hash(self.password_hash, password)
-'''
 # 加载用户的回调函数
 @login_manager.user_loader
 def loas_user(user_id):
 	return User.query.get(int(user_id))
+
 
